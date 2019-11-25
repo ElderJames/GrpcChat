@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Grpc.Net.Client" Version="2.24.0" />
+        <PackageReference Include="protobuf-net.Grpc" Version="1.0.13" />
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\GrpcChat.Shared\GrpcChat.Shared.csproj" />
+    </ItemGroup>
+</Project>

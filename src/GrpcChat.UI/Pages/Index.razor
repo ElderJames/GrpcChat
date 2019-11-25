@@ -1,0 +1,95 @@
+﻿@page "/"
+@using GrpcChat.Shared
+@inject IChat chat;
+<h3>Chat</h3>
+
+@if (!logined)
+{
+    <input type="text" @bind="userId" />
+    <button @onclick="Login">Login</button>
+}
+else
+{
+    <p>Logined!</p>
+    <p>current user:@userId</p>
+
+    <input type="text" @bind="newMsg" />
+    <button @onclick="Send">Send</button>
+}
+
+<div>
+    @foreach (var msg in messageList)
+    {
+        <div>From: @msg.FromUserId msg: @msg.Content</div>
+    }
+</div>
+
+@code {
+    readonly List<Message> messageList = new List<Message>();
+    string userId;
+    bool logined = false;
+
+    private string newMsg;
+
+    private readonly Queue<Message> messageQueue = new Queue<Message>();
+
+    private async Task Login()
+    {
+        messageQueue.Enqueue(new Message() { FromUserId = userId, Content = "login" });
+        await foreach (var chat in chat.JoinAndChat(SendChat()))
+        {
+            if (chat.Content == "login_successful")
+                logined = true;
+            else
+            {
+                messageList.Add(new Message() { FromUserId = chat.FromUserId, Content = chat.Content });
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private void Send()
+    {
+        var split = newMsg.Split(':');
+
+        if (split.Length > 1)
+        {
+            messageQueue.Enqueue(new Message() { FromUserId = userId, ToUserId = split[0], Content = split[1] });
+        }
+        else
+        {
+            messageQueue.Enqueue(new Message() { FromUserId = userId, Content = split[1] });
+        }
+        newMsg = string.Empty;
+    }
+
+}
+
+@functions
+{
+
+    private async IAsyncEnumerable<Message> SendChat()
+    {
+
+        while (true)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            if (!messageQueue.Any())
+                continue;
+
+            var msg = messageQueue.Dequeue();
+
+            if (msg == null)
+                continue;
+
+            if (msg.Content == "exist")
+            {
+                yield break;
+            }
+
+            yield return msg;
+        }
+    }
+}
